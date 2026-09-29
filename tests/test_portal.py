@@ -184,6 +184,14 @@ class PublisherPortalContractTests(unittest.TestCase):
         self.assertNotRegex(honey.group(1), re.compile(r"-\d{4,}px"))
         self.assertRegex(honey.group(1), re.compile(r"clip(?:-path)?:"))
 
+    def test_skip_link_focus_is_not_transformed_offscreen(self):
+        styles = self.read("assets/styles.css")
+        skip_link = re.search(r"\.skip-link\s*\{([^}]*)\}", styles, re.S)
+        self.assertIsNotNone(skip_link)
+        self.assertNotIn("transform:", skip_link.group(1))
+        self.assertRegex(styles, re.compile(r"\.skip-link:not\(:focus\)\s*\{[^}]*clip-path:\s*inset\(50%\)", re.S))
+        self.assertRegex(styles, re.compile(r"\.skip-link:focus\s*\{[^}]*width:\s*auto[^}]*height:\s*auto[^}]*padding:\s*\.65rem\s+1rem[^}]*overflow:\s*visible[^}]*clip-path:\s*none", re.S))
+
     def test_static_assets_avoid_tracking_and_remote_scripts(self):
         for path in ROOT.rglob("*"):
             if not path.is_file() or path.suffix not in {".html", ".css", ".js"}:
