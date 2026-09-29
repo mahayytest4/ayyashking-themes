@@ -173,6 +173,17 @@ class PublisherPortalContractTests(unittest.TestCase):
                     missing.append(f"{html_path.relative_to(ROOT)} -> {raw_link}")
         self.assertEqual([], sorted(missing))
 
+    def test_mobile_overflow_guards_cover_docs_and_no_js_forms(self):
+        styles = self.read("assets/styles.css")
+        self.assertRegex(styles, re.compile(r"\.docs-content\s*\{[^}]*min-width:\s*0", re.S))
+        self.assertRegex(styles, re.compile(r"\.table-wrap\s*\{[^}]*overflow-x:\s*auto", re.S))
+        self.assertRegex(styles, re.compile(r"\.docs-content\s+h1\s*\{[^}]*overflow-wrap:\s*anywhere", re.S))
+        self.assertRegex(styles, re.compile(r"\.code-line,\s*code\s*\{[^}]*overflow-wrap:\s*anywhere", re.S))
+        honey = re.search(r"\.honey\s*\{([^}]*)\}", styles, re.S)
+        self.assertIsNotNone(honey)
+        self.assertNotRegex(honey.group(1), re.compile(r"-\d{4,}px"))
+        self.assertRegex(honey.group(1), re.compile(r"clip(?:-path)?:"))
+
     def test_static_assets_avoid_tracking_and_remote_scripts(self):
         for path in ROOT.rglob("*"):
             if not path.is_file() or path.suffix not in {".html", ".css", ".js"}:
